@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>สื่อการเรียนรู้โต้ตอบ 3D: จำนวนเชิงซ้อน (Complex Numbers) ม.5</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Three.js CDN for 3D Background -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts: Prompt & Chakra Petch -->
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- KaTeX for Math Rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Prompt', sans-serif;
+            background-color: #0b0f19;
+            color: #f1f5f9;
+            overflow-x: hidden;
+        }
+        .heading-font {
+            font-family: 'Chakra Petch', sans-serif;
+        }
+
+        /* 3D Glassmorphism Cards */
+        .glass-card-3d {
+            background: rgba(18, 24, 43, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2),
+                0 0 20px rgba(99, 102, 241, 0.15);
+            border-radius: 1.5rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .glass-card-3d:hover {
+            box-shadow: 
+                0 25px 50px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3),
+                0 0 30px rgba(168, 85, 247, 0.25);
+        }
+
+        /* 3D Interactive Canvas Container */
+        .canvas-3d-box {
+            background: rgba(10, 14, 26, 0.85);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            box-shadow: 
+                inset 0 0 30px rgba(0, 0, 0, 0.8),
+                0 10px 30px rgba(14, 165, 233, 0.2);
+        }
+
+        /* Vibrant Neumorphic Buttons */
+        .btn-3d {
+            position: relative;
+            transition: all 0.15s ease;
+            box-shadow: 0 6px 0 rgba(0, 0, 0, 0.4), 0 10px 15px rgba(0,0,0,0.3);
+        }
+        .btn-3d:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 rgba(0, 0, 0, 0.4), 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        /* Custom Neon Sliders */
+        .custom-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #38bdf8;
+            cursor: pointer;
+            box-shadow: 0 0 12px #38bdf8, inset 0 0 4px #ffffff;
+            border: 2px solid #ffffff;
+        }
+        .custom-slider-z2::-webkit-slider-thumb {
+            background: #f43f5e;
+            box-shadow: 0 0 12px #f43f5e, inset 0 0 4px #ffffff;
+            border: 2px solid #ffffff;
+        }
+
+        /* Canvas Touch Fix */
+        canvas {
+            touch-action: none;
+        }
+
+        /* Glow Text Effect */
+        .glow-text-cyan {
+            text-shadow: 0 0 12px rgba(56, 189, 248, 0.6);
+        }
+        .glow-text-pink {
+            text-shadow: 0 0 12px rgba(244, 63, 94, 0.6);
+        }
+        .glow-text-purple {
+            text-shadow: 0 0 15px rgba(168, 85, 247, 0.7);
+        }
+
+        /* Background WebGL Canvas */
+        #bg-3d-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col relative selection:bg-cyan-500 selection:text-white">
+
+    <!-- 3D Three.js Animated Background Canvas -->
+    <canvas id="bg-3d-canvas"></canvas>
+
+    <!-- Header Navigation Bar -->
+    <header class="bg-slate-950/80 backdrop-blur-md border-b border-indigo-500/30 sticky top-0 z-50 shadow-2xl">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center space-x-3.5">
+                <div class="p-3 bg-gradient-to-tr from-indigo-600 to-cyan-400 rounded-2xl shadow-lg shadow-cyan-500/30 flex items-center justify-center">
+                    <i class="fa-solid fa-cube text-2xl text-white animate-pulse"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-bold heading-font tracking-wide bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 via-purple-300 to-pink-300 glow-text-purple">
+                        จำนวนเชิงซ้อน 3D Interactive (ม.5)
+                    </h1>
+                    <p class="text-xs text-slate-400">สื่อเรียนรู้เชิงวิเคราะห์ มิติเรขาคณิต และระนาบเชิงซ้อน (Argand Diagram)</p>
+                </div>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="scrollToSection('lab-section')" class="btn-3d px-4 py-2 text-xs font-bold rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white hover:brightness-110 transition">
+                    <i class="fa-solid fa-flask-vial mr-1.5"></i> ห้องทดลอง 3D
+                </button>
+                <button onclick="scrollToSection('quiz-section')" class="btn-3d px-4 py-2 text-xs font-bold rounded-xl bg-gradient-to-r from-purple-500 to-pink-600 text-white hover:brightness-110 transition">
+                    <i class="fa-solid fa-square-check mr-1.5"></i> วัดการวิเคราะห์
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10 relative z-10">
+
+        <!-- SECTION 1: INTERACTIVE 3D LAB -->
+        <section id="lab-section" class="scroll-mt-24 space-y-6">
+            
+            <!-- Objective Banner Card -->
+            <div class="glass-card-3d p-5 flex items-start gap-4 border-l-4 border-l-cyan-400">
+                <div class="p-2.5 bg-cyan-500/20 text-cyan-300 rounded-xl mt-0.5 border border-cyan-500/30 shadow-inner">
+                    <i class="fa-solid fa-microscope text-xl"></i>
+                </div>
+                <div class="text-sm text-slate-300 leading-relaxed">
+                    <span class="font-bold text-cyan-300 heading-font text-base block mb-0.5">วัตถุประสงค์เชิงวิเคราะห์:</span>
+                    ให้นักเรียนทดลองปรับค่า $a, b$ หรือลากจุดบนระนาบเชิงซ้อนเพื่อวิเคราะห์การเปลี่ยนแปลงของ <b>ส่วนจริง $\text{Re}(z)$</b>, <b>ส่วนจินตภาพ $\text{Im}(z)$</b>, <b>ขนาด $|z|$</b>, <b>มุมอาร์กิวเมนต์ $\theta$</b>, <b>สังยุค ($\bar{z}$)</b> และผลลัพธ์เวกเตอร์เชิงซ้อนแบบ Real-time
+                </div>
+            </div>
+
+            <!-- Main Interactive Layout Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                
+                <!-- Left Column: Glass Control Panel (Lg: 4 cols) -->
+                <div class="lg:col-span-4 space-y-6">
+                    
+                    <!-- Mode Selection Card -->
+                    <div class="glass-card-3d p-6">
+                        <h2 class="text-base font-bold text-cyan-300 mb-4 flex items-center gap-2 heading-font tracking-wide">
+                            <i class="fa-solid fa-sliders text-cyan-400"></i> โหมดการแสดงผล
+                        </h2>
+                        
+                        <div class="space-y-3">
+                            <label class="flex items-center p-3 rounded-xl bg-slate-900/50 border border-slate-700/60 hover:border-cyan-500/60 cursor-pointer transition">
+                                <input type="radio" name="displayMode" value="algebraic" checked class="w-4 h-4 text-cyan-500 focus:ring-cyan-400 bg-slate-950 border-slate-700" onchange="updateMode()">
+                                <span class="ml-3 text-xs sm:text-sm font-medium text-slate-200">รูปแบบพีชคณิต ($z = a + bi$)</span>
+                            </label>
+
+                            <label class="flex items-center p-3 rounded-xl bg-slate-900/50 border border-slate-700/60 hover:border-cyan-500/60 cursor-pointer transition">
+                                <input type="radio" name="displayMode" value="polar" class="w-4 h-4 text-cyan-500 focus:ring-cyan-400 bg-slate-950 border-slate-700" onchange="updateMode()">
+                                <span class="ml-3 text-xs sm:text-sm font-medium text-slate-200">รูปแบบขั้ว Polar ($r\angle\theta$)</span>
+                            </label>
+
+                            <label class="flex items-center p-3 rounded-xl bg-slate-900/50 border border-slate-700/60 hover:border-cyan-500/60 cursor-pointer transition">
+                                <input type="radio" name="displayMode" value="operation" class="w-4 h-4 text-cyan-500 focus:ring-cyan-400 bg-slate-950 border-slate-700" onchange="updateMode()">
+                                <span class="ml-3 text-xs sm:text-sm font-medium text-slate-200">การดำเนินการเวกเตอร์ ($z_1, z_2$)</span>
+                            </label>
+                        </div>
+
+                        <!-- Operation Sub-options -->
+                        <div id="opTypeContainer" class="mt-5 pt-4 border-t border-slate-800 hidden space-y-2">
+                            <label class="block text-xs font-semibold text-purple-300">เลือกการดำเนินการ:</label>
+                            <div class="grid grid-cols-3 gap-2">
+                                <button type="button" onclick="setOp('add')" id="opBtnAdd" class="btn-3d py-2 text-xs font-bold rounded-xl border border-cyan-400/50 bg-cyan-500/20 text-cyan-200">$z_1 + z_2$</button>
+                                <button type="button" onclick="setOp('sub')" id="opBtnSub" class="btn-3d py-2 text-xs font-bold rounded-xl border border-slate-700 bg-slate-900/60 text-slate-400">$z_1 - z_2$</button>
+                                <button type="button" onclick="setOp('mul')" id="opBtnMul" class="btn-3d py-2 text-xs font-bold rounded-xl border border-slate-700 bg-slate-900/60 text-slate-400">$z_1 \times z_2$</button>
+                            </div>
+                        </div>
+
+                        <!-- Options Toggles -->
+                        <div class="mt-5 pt-4 border-t border-slate-800 flex flex-wrap gap-4 text-xs font-medium text-slate-300">
+                            <label class="flex items-center cursor-pointer hover:text-amber-300 transition">
+                                <input type="checkbox" id="showConjugate" class="rounded text-amber-500 focus:ring-amber-400 bg-slate-900 border-slate-700" onchange="draw()">
+                                <span class="ml-2">แสดงสังยุค ($\bar{z}$)</span>
+                            </label>
+                            <label class="flex items-center cursor-pointer hover:text-cyan-300 transition">
+                                <input type="checkbox" id="showGrid" checked class="rounded text-cyan-500 focus:ring-cyan-400 bg-slate-900 border-slate-700" onchange="draw()">
+                                <span class="ml-2">เส้นตาราง (Grid)</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Sliders & Inputs Control -->
+                    <div class="glass-card-3d p-6 space-y-5">
+                        
+                        <!-- Z1 Inputs -->
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-bold text-cyan-400 flex items-center gap-2">
+                                    <span class="w-3 h-3 rounded-full bg-cyan-400 shadow-lg shadow-cyan-400/80 inline-block"></span> จำนวนเชิงซ้อน $z_1$
+                                </span>
+                                <span class="text-xs font-mono font-bold bg-cyan-950/80 text-cyan-300 border border-cyan-500/40 px-2.5 py-1 rounded-lg" id="z1ValText">3 + 4i</span>
+                            </div>
+                            <div class="space-y-2.5 text-xs">
+                                <div>
+                                    <div class="flex justify-between text-slate-400 mb-1"><span>ส่วนจริง (a):</span><span id="z1aText" class="text-cyan-300 font-mono font-bold">3</span></div>
+                                    <input type="range" id="z1a" min="-10" max="10" step="0.5" value="3" class="w-full custom-slider h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer" oninput="onSliderInput()">
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-slate-400 mb-1"><span>ส่วนจินตภาพ (b):</span><span id="z1bText" class="text-cyan-300 font-mono font-bold">4</span></div>
+                                    <input type="range" id="z1b" min="-10" max="10" step="0.5" value="4" class="w-full custom-slider h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer" oninput="onSliderInput()">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Z2 Inputs (Visible in Operations) -->
+                        <div id="z2ControlBox" class="pt-4 border-t border-slate-800 space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-bold text-rose-400 flex items-center gap-2">
+                                    <span class="w-3 h-3 rounded-full bg-rose-500 shadow-lg shadow-rose-500/80 inline-block"></span> จำนวนเชิงซ้อน $z_2$
+                                </span>
+                                <span class="text-xs font-mono font-bold bg-rose-950/80 text-rose-300 border border-rose-500/40 px-2.5 py-1 rounded-lg" id="z2ValText">-2 + 3i</span>
+                            </div>
+                            <div class="space-y-2.5 text-xs">
+                                <div>
+                                    <div class="flex justify-between text-slate-400 mb-1"><span>ส่วนจริง (c):</span><span id="z2cText" class="text-rose-300 font-mono font-bold">-2</span></div>
+                                    <input type="range" id="z2c" min="-10" max="10" step="0.5" value="-2" class="w-full custom-slider custom-slider-z2 h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer" oninput="onSliderInput()">
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-slate-400 mb-1"><span>ส่วนจินตภาพ (d):</span><span id="z2dText" class="text-rose-300 font-mono font-bold">3</span></div>
+                                    <input type="range" id="z2d" min="-10" max="10" step="0.5" value="3" class="w-full custom-slider custom-slider-z2 h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer" oninput="onSliderInput()">
+                                </div>
+                            </div>
+                        </div>
+
+                        <button onclick="resetValues()" class="w-full btn-3d py-2.5 text-xs font-bold text-slate-300 bg-slate-800 border border-slate-700 hover:bg-slate-700 rounded-xl transition">
+                            <i class="fa-solid fa-rotate-left mr-1.5"></i> รีเซ็ตค่าเริ่มต้น
+                        </button>
+                    </div>
+
+                </div>
+
+                <!-- Right Column: Interactive 2D/3D Diagram & Live Analysis Metrics (Lg: 8 cols) -->
+                <div class="lg:col-span-8 flex flex-col space-y-6">
+                    
+                    <!-- Argand Diagram Box -->
+                    <div class="glass-card-3d p-5 relative flex flex-col items-center justify-center">
+                        <div class="absolute top-7 left-7 bg-slate-950/80 backdrop-blur px-3.5 py-2 rounded-xl border border-cyan-500/30 shadow-lg text-xs text-cyan-300 flex items-center gap-2 z-10">
+                            <i class="fa-solid fa-hand-pointer text-cyan-400 animate-bounce"></i> ลากจุด $z_1$ หรือ $z_2$ บนระนาบเพื่อเปลี่ยนตำแหน่งสดๆ
+                        </div>
+                        
+                        <div class="canvas-3d-box w-full rounded-2xl overflow-hidden p-1 flex justify-center items-center">
+                            <canvas id="complexCanvas" width="650" height="480" class="w-full max-w-full rounded-xl cursor-crosshair"></canvas>
+                        </div>
+                        
+                        <!-- Legend Footer -->
+                        <div class="w-full flex flex-wrap justify-center gap-6 mt-4 text-xs font-semibold">
+                            <span class="flex items-center gap-2 text-cyan-300"><span class="w-3.5 h-3.5 rounded-full bg-cyan-400 shadow-md shadow-cyan-400/80"></span> $z_1$</span>
+                            <span id="legendZ2" class="flex items-center gap-2 text-rose-300"><span class="w-3.5 h-3.5 rounded-full bg-rose-500 shadow-md shadow-rose-500/80"></span> $z_2$</span>
+                            <span id="legendConjugate" class="hidden flex items-center gap-2 text-amber-300"><span class="w-3.5 h-3.5 rounded-full bg-amber-400 shadow-md shadow-amber-400/80"></span> $\bar{z}_1$ (สังยุค)</span>
+                            <span id="legendResult" class="hidden flex items-center gap-2 text-emerald-300"><span class="w-3.5 h-3.5 rounded-full bg-emerald-400 shadow-md shadow-emerald-400/80"></span> ผลลัพธ์ ($z_{res}$)</span>
+                        </div>
+                    </div>
+
+                    <!-- Live Metrics & Dynamic Analysis -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        
+                        <!-- Real-time Values Card -->
+                        <div class="glass-card-3d p-5 border-l-4 border-l-cyan-400">
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-cyan-300 mb-3 flex items-center gap-2 heading-font">
+                                <i class="fa-solid fa-chart-pie"></i> องค์ประกอบ $z_1$ (Real-Time Metrics)
+                            </h3>
+                            <div class="space-y-2 text-xs">
+                                <div class="flex justify-between py-1 border-b border-slate-800">
+                                    <span class="text-slate-400">ส่วนจริง $\text{Re}(z_1)$:</span>
+                                    <span class="font-mono font-bold text-cyan-300 text-sm" id="mRe1">3</span>
+                                </div>
+                                <div class="flex justify-between py-1 border-b border-slate-800">
+                                    <span class="text-slate-400">ส่วนจินตภาพ $\text{Im}(z_1)$:</span>
+                                    <span class="font-mono font-bold text-cyan-300 text-sm" id="mIm1">4</span>
+                                </div>
+                                <div class="flex justify-between py-1 border-b border-slate-800">
+                                    <span class="text-slate-400">ขนาด $|z_1| = \sqrt{a^2+b^2}$:</span>
+                                    <span class="font-mono font-bold text-amber-300 text-sm" id="mMod1">5.00</span>
+                                </div>
+                                <div class="flex justify-between py-1">
+                                    <span class="text-slate-400">มุมอาร์กิวเมนต์ $\theta_1$:</span>
+                                    <span class="font-mono font-bold text-purple-300 text-sm" id="mArg1">53.13° (0.93 rad)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Analytical Insights Card -->
+                        <div class="glass-card-3d p-5 border-l-4 border-l-purple-400 flex flex-col justify-between">
+                            <div>
+                                <h3 class="text-xs font-bold uppercase tracking-wider text-purple-300 mb-3 flex items-center gap-2 heading-font">
+                                    <i class="fa-solid fa-brain text-purple-400"></i> วิเคราะห์เชิงลึก (Live Analysis)
+                                </h3>
+                                <div id="liveAnalysisText" class="text-xs leading-relaxed text-slate-200 space-y-1.5">
+                                    <!-- Dynamic text inserted by JS -->
+                                </div>
+                            </div>
+                            <div class="mt-4 pt-3 border-t border-slate-800 text-[11px] flex justify-between items-center">
+                                <span class="text-slate-400">รูปแบบขั้ว Polar:</span>
+                                <span id="polarFormulaText" class="font-mono text-amber-300 font-semibold text-xs">5.00(cos 53.1° + i sin 53.1°)</span>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SECTION 2: ANALYTICAL ASSESSMENT QUIZ -->
+        <section id="quiz-section" class="scroll-mt-24 pt-6 space-y-6">
+            
+            <!-- Quiz Title Banner -->
+            <div class="glass-card-3d p-6 border-l-4 border-l-purple-500 flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <div class="p-3.5 bg-purple-500/20 text-purple-300 rounded-2xl border border-purple-500/40 shadow-inner">
+                        <i class="fa-solid fa-graduation-cap text-3xl"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold heading-font text-white glow-text-purple">แบบทดสอบประเมินสมรรถนะการวิเคราะห์</h2>
+                        <p class="text-xs text-slate-400 mt-1">วัดความเข้าใจเชิงลึกเกี่ยวกับสมบัติ ระนาบเชิงซ้อน ขนาด อาร์กิวเมนต์ และการหมุนเวกเตอร์ (3 ข้อ)</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quiz Questions Grid -->
+            <div class="space-y-6">
+
+                <!-- Question 1 -->
+                <div class="glass-card-3d p-6 space-y-4" id="q1Card">
+                    <div class="flex items-start justify-between gap-4">
+                        <span class="px-3 py-1 bg-purple-950 text-purple-300 border border-purple-500/40 font-bold text-xs rounded-full">ข้อที่ 1</span>
+                        <span class="text-xs font-medium text-slate-400">หัวข้อ: ตำแหน่งสังยุคและอินเวิร์สบนระนาบเชิงซ้อน</span>
+                    </div>
+
+                    <p class="text-slate-200 font-medium text-sm sm:text-base leading-relaxed">
+                        กำหนดจำนวนเชิงซ้อน $z = a + bi$ โดยที่ $a < 0$ และ $b > 0$ (ตำแหน่งอยู่ใน Quadrant 2) หากพิจารณาจำนวนเชิงซ้อนสังยุค $\bar{z}$ และ $-z$ ข้อใดต่อไปนี้ระบุตำแหน่งบนระนาบเชิงซ้อนได้อย่างถูกต้อง?
+                    </p>
+
+                    <div class="space-y-2.5">
+                        <label class="flex items-start p-3.5 rounded-xl bg-slate-900/50 border border-slate-800 hover:border-purple-500/50 cursor-pointer transition">
+                            <input type="radio" name="q1" value="A" class="mt-1 text-purple-500 focus:ring-purple-400 bg-slate-950 border-slate-700">
+                            <span class="ml-3 text-sm text-slate-300">ก) $\bar{z}$ อยู่ใน Quadrant 1 และ $-z$ อยู่ใน Quadrant 4</span>
+                        </label>
+                        <label class="flex items-start p-3.5 rounded-xl bg-slate-900/50 border border-slate-800 hover:border-purple-500/50 cursor-pointer transition">
+                            <input type="radio" name="q1" value="B" class="mt-1 text-purple-500 focus:ring-purple-400 bg-slate-950 border-slate-700">
+                            <span class="ml-3 text-sm text-slate-300">ข) $\bar{z}$ อยู่ใน Quadrant 3 และ $-z$ อยู่ใน Quadrant 4</span>
+                        </label>
+                        <label class="flex items-start p-3.5 rounded-xl bg-slate-900/50 border border-slate-800 hover:border-purple-500/50 cursor-pointer transition">
+                            <input type="radio" name="q1" value="C" class="mt-1 text-purple-500 focus:ring-purple-400 bg-slate-950 border-slate-700">
+                            <span class="ml-3 text-sm text-slate-300">ค) $\bar{z}$ อยู่ใน Quadrant 3 และ $-z$ อยู่ใน Quadrant 1</span>
+                        </label>
+                        <label class="flex items-start p-3.5 rounded-xl bg-slate-900/50 border border-slate-800 hover:border-purple-500/50 cursor-pointer transition">
+                            <input type="radio" name="q1" value="D" class="mt-1 text-purple-500 focus:ring-purple-400 bg-slate-950 border-slate-700">
+                            <span class="ml-3 text-sm text-slate-300">ง) $\bar{z}$ อยู่ใน Quadrant 4 และ $-z$ อยู่ใน Quadrant 3</span>
+                        </label>
+                    </div>
+
+                    <div id="q1Explanation" class="p-4 rounded-xl hidden text-xs leading-relaxed"></div>
+
+                    <div class="flex justify-end pt-2">
+                        <button onclick="checkAnswer(1)" class="btn-3d px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:brightness-110 text-white font-bold text-xs rounded-xl transition flex items-center gap-2">
+                            <i class="fa-solid fa-circle-check"></i> ตรวจคำตอบข้อ 1
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Question 2 -->
+                <div class="glass-card-3d p-6 space-y-4" id="q2Card">
+                    <div class="flex items-start justify-between gap-4">
+                        <span class="px-3 py-1 bg-purple-950 text-purple-300 border border-purple-500/40 font-bold text-xs rounded-full">ข้อที่ 2</span>
+                        <span class="text-xs font-medium text-slate-400">หัวข้อ: ผลคูณในรูปขั้ว Polar Form ($r_1 \cdot r_2$ และ $\theta_1 + \theta_2$)</span>
+                    </div>
+
+                    <p class="text-slate-200 font-medium text-sm sm:text-base leading-relaxed">
+                        กำหนด $z_1 = 2(\cos 40^\circ + i\sin 40^\circ)$ และ $z_2 = 3(\cos 80^\circ + i\sin 80^\circ)$ ข้อใดคือค่าของผลคูณ $z_1 \cdot z_2$ ในรูปพีชคณิต $a + bi$?
+                    </p>
+
+                    <div class="space-y-2.5">
+                        <label class="flex items-start p-3.5 rounded-xl bg-slate-900/50 border border-slate-800 hover:border-purple-500/50 cursor-pointer transition">
+                            <input type="radio" name="q2" value="A" class="mt-1 text-purple-500 focus:ring-purple-400 bg-slate-950 border-slate-700">
+                            <span class="ml-3 text-sm text-slate-300">ก) $-3 + 3\sqrt{3}i$</span>
+                        </label>
+                        <label class="flex items-start p-3.5 rounded-xl bg-slate-900/50 border border-slate-800 hover:border-purple-500/50 cursor-pointer transition">
+                            <input type="radio" name="q2" value="B" class="mt-1 text-purple-500 focus:ring-purple-400 bg-slate-950 border-slate-700">
+                            <span class="ml-3 text-sm text-slate-300">ข) $3 - 3\sqrt{3}i$</span>
+                        </label>
+                        <label class="flex items-start p-3.5 rounded-xl bg-slate-900/50 border border-slate-800 hover:border-purple-500/50 cursor-pointer transition">
+                            <input type="radio" name="q2" value="C" class="mt-1 text-purple-500 focus:ring-purple-400 bg-slate-950 border-slate-700">
+                            <span class="ml-3 text-sm text-slate-300">ค) $-3\sqrt{3} + 3i$</span>
+                        </label>
+                        <label class="flex items-start p-3.5 rounded-xl bg-slate-900/50 border border-slate-800 hover:border-purple-500/50 cursor-pointer transition">
+                            <input type="radio" name="q2" value="D" class="mt-1 text-purple-500 focus:ring-purple-400 bg-slate-950 border-slate-700">
+                            <span class="ml-3 text-sm text-slate-300">ง) $6(\cos 320^\circ + i\sin 320^\circ)$</span>
+                        </label>
+                    </div>
+
+                    <div id="q2Explanation" class="p-4 rounded-xl hidden text-xs leading-relaxed"></div>
+
+                    <div class="flex justify-end pt-2">
+                        <button onclick="checkAnswer(2)" class="btn-3d px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:brightness-110 text-white font-bold text-xs rounded-xl transition flex items-center gap-2">
+                            <i class="fa-solid fa-circle-check"></i> ตรวจคำตอบข้อ 2
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Question 3 -->
+                <div class="glass-card-3d p-6 space-y-4" id="q3Card">
+                    <div class="flex items-start justify-between gap-4">
+                        <span class="px-3 py-1 bg-purple-950 text-purple-300 border border-purple-500/40 font-bold text-xs rounded-full">ข้อที่ 3</span>
+                        <span class="text-xs font-medium text-slate-400">หัวข้อ: การเปลี่ยนแปลงเชิงเรขาคณิตของการคูณด้วย $i$</span>
+                    </div>
+
+                    <p class="text-slate-200 font-medium text-sm sm:text-base leading-relaxed">
+                        เมื่อนำจำนวนเชิงซ้อน $z = a + bi$ ใดๆ ที่ไม่ใช่ $0$ ไปคูณด้วย $i$ ($z \cdot i$) จะเกิดผลลัพธ์การเปลี่ยนแปลงทางเรขาคณิตบนระนาบเชิงซ้อนอย่างไร?
+                    </p>
+
+                    <div class="space-y-2.5">
+                        <label class="flex items-start p-3.5 rounded-xl bg-slate-900/50 border border-slate-800 hover:border-purple-500/50 cursor-pointer transition">
+                            <input type="radio" name="q3" value="A" class="mt-1 text-purple-500 focus:ring-purple-400 bg-slate-950 border-slate-700">
+                            <span class="ml-3 text-sm text-slate-300">ก) ขนาดของเวกเตอร์เพิ่มขึ้น $1$ หน่วย แต่ทิศทางคงเดิม</span>
+                        </label>
+                        <label class="flex items-start p-3.5 rounded-xl bg-slate-900/50 border border-slate-800 hover:border-purple-500/50 cursor-pointer transition">
+                            <input type="radio" name="q3" value="B" class="mt-1 text-purple-500 focus:ring-purple-400 bg-slate-950 border-slate-700">
+                            <span class="ml-3 text-sm text-slate-300">ข) เวกเตอร์หมุนทวนเข็มนาฬิการอบจุดกำเนิดเป็นมุม $90^\circ$ โดยขนาดเท่าเดิม</span>
+                        </label>
+                        <label class="flex items-start p-3.5 rounded-xl bg-slate-900/50 border border-slate-800 hover:border-purple-500/50 cursor-pointer transition">
+                            <input type="radio" name="q3" value="C" class="mt-1 text-purple-500 focus:ring-purple-400 bg-slate-950 border-slate-700">
+                            <span class="ml-3 text-sm text-slate-300">ค) เวกเตอร์หมุนตามเข็มนาฬิการอบจุดกำเนิดเป็นมุม $90^\circ$ โดยขนาดเท่าเดิม</span>
+                        </label>
+                        <label class="flex items-start p-3.5 rounded-xl bg-slate-900/50 border border-slate-800 hover:border-purple-500/50 cursor-pointer transition">
+                            <input type="radio" name="q3" value="D" class="mt-1 text-purple-500 focus:ring-purple-400 bg-slate-950 border-slate-700">
+                            <span class="ml-3 text-sm text-slate-300">ง) เวกเตอร์จะถูกสะท้อนข้ามแกนจริง (Re) โดยมุมเปลี่ยนเป็น $-\theta$</span>
+                        </label>
+                    </div>
+
+                    <div id="q3Explanation" class="p-4 rounded-xl hidden text-xs leading-relaxed"></div>
+
+                    <div class="flex justify-end pt-2">
+                        <button onclick="checkAnswer(3)" class="btn-3d px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:brightness-110 text-white font-bold text-xs rounded-xl transition flex items-center gap-2">
+                            <i class="fa-solid fa-circle-check"></i> ตรวจคำตอบข้อ 3
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-950/90 text-slate-500 text-xs py-8 mt-16 border-t border-slate-800/80 relative z-10">
+        <div class="max-w-7xl mx-auto px-4 text-center space-y-2">
+            <p class="text-slate-400 font-semibold">สื่อการเรียนรู้คณิตศาสตร์โต้ตอบ 3D เรื่อง จำนวนเชิงซ้อน (Complex Numbers) ชั้น ม.5</p>
+            <p>ออกแบบและพัฒนาสำหรับการสร้างมิติทางความคิดและสมรรถนะการวิเคราะห์เชิงคณิตศาสตร์</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // State variables
+        let z1 = { a: 3, b: 4 };
+        let z2 = { a: -2, b: 3 };
+        let currentMode = 'algebraic'; // algebraic, polar, operation
+        let currentOp = 'add'; // add, sub, mul
+
+        // Interactive Canvas Element Setup
+        const canvas = document.getElementById('complexCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        let scale = 22; // scale factor
+        let originX = canvas.width / 2;
+        let originY = canvas.height / 2;
+        let isDragging = false;
+        let draggedTarget = null; // 'z1' or 'z2'
+
+        // -------------------------------------------------------------
+        // THREE.JS 3D DYNAMIC BACKGROUND SETUP
+        // -------------------------------------------------------------
+        function init3dBackground() {
+            const bgCanvas = document.getElementById('bg-3d-canvas');
+            const scene = new THREE.Scene();
+            
+            // Camera
+            const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 30;
+
+            // Renderer
+            const renderer = new THREE.WebGLRenderer({ canvas: bgCanvas, alpha: true, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+            // Ambient & Directional Lights
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+
+            const pointLight1 = new THREE.PointLight(0x38bdf8, 2, 100);
+            pointLight1.position.set(20, 20, 20);
+            scene.add(pointLight1);
+
+            const pointLight2 = new THREE.PointLight(0xf43f5e, 2, 100);
+            pointLight2.position.set(-20, -20, 10);
+            scene.add(pointLight2);
+
+            // 1. 3D Torus Knot Geometry
+            const torusGeo = new THREE.TorusKnotGeometry(9, 2.2, 120, 16);
+            const torusMat = new THREE.MeshStandardMaterial({
+                color: 0x6366f1,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.25
+            });
+            const torusKnot = new THREE.Mesh(torusGeo, torusMat);
+            scene.add(torusKnot);
+
+            // 2. Floating 3D Geometric Particles
+            const particlesGeo = new THREE.BufferGeometry();
+            const particlesCount = 200;
+            const posArray = new Float32Array(particlesCount * 3);
+
+            for (let i = 0; i < particlesCount * 3; i++) {
+                posArray[i] = (Math.random() - 0.5) * 80;
+            }
+            particlesGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+
+            const particlesMat = new THREE.PointsMaterial({
+                size: 0.35,
+                color: 0x38bdf8,
+                transparent: true,
+                opacity: 0.6
+            });
+            const particlesMesh = new THREE.Points(particlesGeo, particlesMat);
+            scene.add(particlesMesh);
+
+            // Mouse Interaction Parallax
+            let mouseX = 0;
+            let mouseY = 0;
+
+            window.addEventListener('mousemove', (e) => {
+                mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+                mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+            });
+
+            // Resize Handler
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+
+            // Animation Loop
+            function animate3D() {
+                requestAnimationFrame(animate3D);
+
+                torusKnot.rotation.x += 0.003;
+                torusKnot.rotation.y += 0.005;
+
+                particlesMesh.rotation.y -= 0.001;
+
+                // Subtle camera drift based on mouse
+                camera.position.x += (mouseX * 3 - camera.position.x) * 0.05;
+                camera.position.y += (-mouseY * 3 - camera.position.y) * 0.05;
+                camera.lookAt(scene.position);
+
+                renderer.render(scene, camera);
+            }
+            animate3D();
+        }
+
+        // -------------------------------------------------------------
+        // APPLICATION LOGIC & CANVAS DRAWING
+        // -------------------------------------------------------------
+        window.onload = function() {
+            init3dBackground();
+            renderKaTeX();
+            updateMode();
+            draw();
+        };
+
+        function renderKaTeX() {
+            if (window.renderMathInElement) {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ]
+                });
+            }
+        }
+
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function updateMode() {
+            const radios = document.getElementsByName('displayMode');
+            for (let r of radios) {
+                if (r.checked) currentMode = r.value;
+            }
+
+            const opContainer = document.getElementById('opTypeContainer');
+            const z2Box = document.getElementById('z2ControlBox');
+            const legendZ2 = document.getElementById('legendZ2');
+            const legendResult = document.getElementById('legendResult');
+
+            if (currentMode === 'operation') {
+                opContainer.classList.remove('hidden');
+                z2Box.classList.remove('hidden');
+                legendZ2.classList.remove('hidden');
+                legendResult.classList.remove('hidden');
+            } else {
+                opContainer.classList.add('hidden');
+                z2Box.classList.add('hidden');
+                legendZ2.classList.add('hidden');
+                legendResult.classList.add('hidden');
+            }
+
+            draw();
+        }
+
+        function setOp(op) {
+            currentOp = op;
+            ['Add', 'Sub', 'Mul'].forEach(o => {
+                const btn = document.getElementById('opBtn' + o);
+                if (o.toLowerCase() === op) {
+                    btn.className = "btn-3d py-2 text-xs font-bold rounded-xl border border-cyan-400/50 bg-cyan-500/20 text-cyan-200";
+                } else {
+                    btn.className = "btn-3d py-2 text-xs font-bold rounded-xl border border-slate-700 bg-slate-900/60 text-slate-400";
+                }
+            });
+            draw();
+        }
+
+        function onSliderInput() {
+            z1.a = parseFloat(document.getElementById('z1a').value);
+            z1.b = parseFloat(document.getElementById('z1b').value);
+            z2.a = parseFloat(document.getElementById('z2c').value);
+            z2.b = parseFloat(document.getElementById('z2d').value);
+            draw();
+        }
+
+        function resetValues() {
+            document.getElementById('z1a').value = 3;
+            document.getElementById('z1b').value = 4;
+            document.getElementById('z2c').value = -2;
+            document.getElementById('z2d').value = 3;
+            onSliderInput();
+        }
+
+        function toScreenX(x) { return originX + x * scale; }
+        function toScreenY(y) { return originY - y * scale; }
+        function toMathX(px) { return (px - originX) / scale; }
+        function toMathY(py) { return (originY - py) / scale; }
+
+        // Dragging Logic for Canvas Points
+        canvas.addEventListener('mousedown', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            const p1x = toScreenX(z1.a);
+            const p1y = toScreenY(z1.b);
+            const dist1 = Math.hypot(mouseX - p1x, mouseY - p1y);
+
+            if (dist1 < 18) {
+                isDragging = true;
+                draggedTarget = 'z1';
+                return;
+            }
+
+            if (currentMode === 'operation') {
+                const p2x = toScreenX(z2.a);
+                const p2y = toScreenY(z2.b);
+                const dist2 = Math.hypot(mouseX - p2x, mouseY - p2y);
+                if (dist2 < 18) {
+                    isDragging = true;
+                    draggedTarget = 'z2';
+                }
+            }
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            let rawA = Math.round(toMathX(mouseX) * 2) / 2;
+            let rawB = Math.round(toMathY(mouseY) * 2) / 2;
+
+            rawA = Math.max(-10, Math.min(10, rawA));
+            rawB = Math.max(-10, Math.min(10, rawB));
+
+            if (draggedTarget === 'z1') {
+                z1.a = rawA;
+                z1.b = rawB;
+                document.getElementById('z1a').value = z1.a;
+                document.getElementById('z1b').value = z1.b;
+            } else if (draggedTarget === 'z2') {
+                z2.a = rawA;
+                z2.b = rawB;
+                document.getElementById('z2c').value = z2.a;
+                document.getElementById('z2d').value = z2.b;
+            }
+            draw();
+        });
+
+        window.addEventListener('mouseup', () => {
+            isDragging = false;
+            draggedTarget = null;
+        });
+
+        // Main Draw Function
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const showGrid = document.getElementById('showGrid').checked;
+            const showConjugate = document.getElementById('showConjugate').checked;
+
+            updateUIValues();
+
+            if (showGrid) drawGrid();
+            drawAxes();
+
+            // Conjugate Vector
+            if (showConjugate) {
+                const conjZ1 = { a: z1.a, b: -z1.b };
+                drawVector(0, 0, conjZ1.a, conjZ1.b, '#f59e0b', 'z̄₁', true);
+                document.getElementById('legendConjugate').classList.remove('hidden');
+            } else {
+                document.getElementById('legendConjugate').classList.add('hidden');
+            }
+
+            // Draw Z1
+            drawVector(0, 0, z1.a, z1.b, '#38bdf8', 'z₁ = ' + formatComplex(z1.a, z1.b));
+
+            // Mode specific rendering
+            if (currentMode === 'polar') {
+                drawPolarDetails(z1);
+            } else if (currentMode === 'operation') {
+                drawVector(0, 0, z2.a, z2.b, '#f43f5e', 'z₂ = ' + formatComplex(z2.a, z2.b));
+
+                let res = { a: 0, b: 0 };
+                if (currentOp === 'add') {
+                    res.a = z1.a + z2.a;
+                    res.b = z1.b + z2.b;
+                    drawDashedLine(z1.a, z1.b, res.a, res.b, '#f43f5e');
+                    drawDashedLine(z2.a, z2.b, res.a, res.b, '#38bdf8');
+                    drawVector(0, 0, res.a, res.b, '#10b981', 'z₁ + z₂ = ' + formatComplex(res.a, res.b));
+                } else if (currentOp === 'sub') {
+                    res.a = z1.a - z2.a;
+                    res.b = z1.b - z2.b;
+                    drawDashedLine(z2.a, z2.b, z1.a, z1.b, '#10b981');
+                    drawVector(0, 0, res.a, res.b, '#10b981', 'z₁ - z₂ = ' + formatComplex(res.a, res.b));
+                } else if (currentOp === 'mul') {
+                    res.a = (z1.a * z2.a) - (z1.b * z2.b);
+                    res.b = (z1.a * z2.b) + (z1.b * z2.a);
+                    drawVector(0, 0, res.a, res.b, '#10b981', 'z₁ × z₂ = ' + formatComplex(res.a, res.b));
+                }
+            }
+        }
+
+        function drawGrid() {
+            ctx.strokeStyle = 'rgba(51, 65, 85, 0.4)';
+            ctx.lineWidth = 1;
+
+            for (let x = -10; x <= 10; x += 1) {
+                ctx.beginPath();
+                ctx.moveTo(toScreenX(x), 0);
+                ctx.lineTo(toScreenX(x), canvas.height);
+                ctx.stroke();
+            }
+            for (let y = -10; y <= 10; y += 1) {
+                ctx.beginPath();
+                ctx.moveTo(0, toScreenY(y));
+                ctx.lineTo(canvas.width, toScreenY(y));
+                ctx.stroke();
+            }
+        }
+
+        function drawAxes() {
+            ctx.strokeStyle = '#94a3b8';
+            ctx.lineWidth = 2;
+
+            // X Axis
+            ctx.beginPath();
+            ctx.moveTo(0, originY);
+            ctx.lineTo(canvas.width, originY);
+            ctx.stroke();
+
+            // Y Axis
+            ctx.beginPath();
+            ctx.moveTo(originX, 0);
+            ctx.lineTo(originX, canvas.height);
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#cbd5e1';
+            ctx.font = 'bold 12px Prompt';
+            ctx.fillText('Re (แกนจริง)', canvas.width - 80, originY - 10);
+            ctx.fillText('Im (แกนจินตภาพ)', originX + 10, 20);
+
+            // Ticks
+            ctx.font = '10px Prompt';
+            ctx.fillStyle = '#64748b';
+            for (let x = -10; x <= 10; x += 2) {
+                if (x !== 0) ctx.fillText(x.toString(), toScreenX(x) - 5, originY + 16);
+            }
+            for (let y = -10; y <= 10; y += 2) {
+                if (y !== 0) ctx.fillText(y.toString(), originX + 8, toScreenY(y) + 3);
+            }
+        }
+
+        function drawVector(fromA, fromB, toA, toB, color, label, isDashed = false) {
+            const startX = toScreenX(fromA);
+            const startY = toScreenY(fromB);
+            const endX = toScreenX(toA);
+            const endY = toScreenY(toB);
+
+            ctx.save();
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = 3;
+
+            if (isDashed) ctx.setLineDash([5, 5]);
+
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(endX, endY);
+            ctx.stroke();
+
+            // Arrow Head
+            const angle = Math.atan2(endY - startY, endX - startX);
+            const headLen = 10;
+            ctx.setLineDash([]);
+            ctx.beginPath();
+            ctx.moveTo(endX, endY);
+            ctx.lineTo(endX - headLen * Math.cos(angle - Math.PI / 6), endY - headLen * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(endX - headLen * Math.cos(angle + Math.PI / 6), endY - headLen * Math.sin(angle + Math.PI / 6));
+            ctx.fill();
+
+            // Glowing Point End
+            ctx.beginPath();
+            ctx.arc(endX, endY, 6, 0, Math.PI * 2);
+            ctx.shadowColor = color;
+            ctx.shadowBlur = 10;
+            ctx.fill();
+
+            // Label
+            if (label) {
+                ctx.shadowBlur = 0;
+                ctx.font = 'bold 12px Prompt';
+                ctx.fillText(label, endX + 10, endY - 10);
+            }
+            ctx.restore();
+        }
+
+        function drawDashedLine(fromA, fromB, toA, toB, color) {
+            ctx.save();
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([4, 4]);
+            ctx.beginPath();
+            ctx.moveTo(toScreenX(fromA), toScreenY(fromB));
+            ctx.lineTo(toScreenX(toA), toScreenY(toB));
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function drawPolarDetails(z) {
+            const r = Math.hypot(z.a, z.b);
+            let rad = Math.atan2(z.b, z.a);
+            if (rad < 0) rad += 2 * Math.PI;
+
+            // Radius Circle
+            ctx.save();
+            ctx.strokeStyle = 'rgba(168, 85, 247, 0.4)';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([4, 4]);
+            ctx.beginPath();
+            ctx.arc(originX, originY, r * scale, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Angle Arc
+            ctx.strokeStyle = '#f59e0b';
+            ctx.fillStyle = 'rgba(245, 158, 11, 0.2)';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([]);
+            ctx.beginPath();
+            ctx.moveTo(originX, originY);
+            ctx.arc(originX, originY, 40, 0, -rad, true);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Arc Label
+            const deg = (rad * 180 / Math.PI).toFixed(1);
+            ctx.fillStyle = '#fbbf24';
+            ctx.font = 'bold 12px Prompt';
+            ctx.fillText(`θ = ${deg}°`, originX + 48 * Math.cos(-rad / 2), originY + 48 * Math.sin(-rad / 2));
+            ctx.restore();
+        }
+
+        function formatComplex(a, b) {
+            if (b === 0) return `${a}`;
+            if (a === 0) return `${b}i`;
+            const sign = b > 0 ? '+' : '-';
+            const absB = Math.abs(b) === 1 ? '' : Math.abs(b);
+            return `${a} ${sign} ${absB}i`;
+        }
+
+        function updateUIValues() {
+            document.getElementById('z1ValText').innerText = formatComplex(z1.a, z1.b);
+            document.getElementById('z1aText').innerText = z1.a;
+            document.getElementById('z1bText').innerText = z1.b;
+
+            document.getElementById('z2ValText').innerText = formatComplex(z2.a, z2.b);
+            document.getElementById('z2cText').innerText = z2.a;
+            document.getElementById('z2dText').innerText = z2.b;
+
+            const r1 = Math.hypot(z1.a, z1.b);
+            let rad1 = Math.atan2(z1.b, z1.a);
+            if (rad1 < 0) rad1 += 2 * Math.PI;
+            const deg1 = (rad1 * 180 / Math.PI).toFixed(1);
+
+            document.getElementById('mRe1').innerText = z1.a;
+            document.getElementById('mIm1').innerText = z1.b;
+            document.getElementById('mMod1').innerText = r1.toFixed(2);
+            document.getElementById('mArg1').innerText = `${deg1}° (${rad1.toFixed(2)} rad)`;
+
+            document.getElementById('polarFormulaText').innerText = `${r1.toFixed(2)}(cos ${deg1}° + i sin ${deg1}°)`;
+
+            const liveText = document.getElementById('liveAnalysisText');
+            if (currentMode === 'algebraic') {
+                liveText.innerHTML = `
+                    <p>• <b>ระนาบเชิงซ้อน:</b> จุด $z_1$ อยู่ใน Quadrant <b>${getQuadrant(z1.a, z1.b)}</b></p>
+                    <p>• <b>ขนาด:</b> ระยะจาก $(0,0)$ ถึง $z_1$ คือ <b>${r1.toFixed(2)}</b> หน่วย</p>
+                    <p>• <b>สังยุค $\\bar{z}_1$:</b> มีค่าเป็น <b>${formatComplex(z1.a, -z1.b)}</b> (สะท้อนข้ามแกน Re)</p>
+                `;
+            } else if (currentMode === 'polar') {
+                liveText.innerHTML = `
+                    <p>• <b>รัศมี $r$:</b> $r = \\sqrt{${z1.a}^2 + ${z1.b}^2} = ${r1.toFixed(2)}$</p>
+                    <p>• <b>มุม $\\theta$:</b> $\\tan\\theta = ${z1.b}/${z1.a} \\Rightarrow \\theta = ${deg1}^\\circ$</p>
+                    <p>• <b>ทฤษฎีเดอมัวฟ์:</b> หากยกกำลัง $n$ จะได้ขนาด $r^n$ และมุม $n\\theta$</p>
+                `;
+            } else {
+                let resA = 0, resB = 0, opSymbol = '+';
+                if (currentOp === 'add') {
+                    resA = z1.a + z2.a; resB = z1.b + z2.b; opSymbol = '+';
+                } else if (currentOp === 'sub') {
+                    resA = z1.a - z2.a; resB = z1.b - z2.b; opSymbol = '-';
+                } else {
+                    resA = (z1.a * z2.a) - (z1.b * z2.b);
+                    resB = (z1.a * z2.b) + (z1.b * z2.a);
+                    opSymbol = '\\times';
+                }
+                const resR = Math.hypot(resA, resB);
+
+                liveText.innerHTML = `
+                    <p>• <b>ผลลัพธ์ $z_1 ${opSymbol} z_2$:</b> <b>${formatComplex(resA, resB)}</b></p>
+                    <p>• <b>ขนาดเวกเตอร์ผลลัพธ์:</b> $|z_{res}| = <b>${resR.toFixed(2)}</b>$</p>
+                    ${currentOp === 'mul' ? `<p class="text-amber-300">• <b>กฎการคูณ:</b> $|z_1 \\cdot z_2| = |z_1| \\times |z_2| = ${(r1 * Math.hypot(z2.a, z2.b)).toFixed(2)}$</p>` : ''}
+                `;
+            }
+
+            renderKaTeX();
+        }
+
+        function getQuadrant(a, b) {
+            if (a > 0 && b > 0) return '1';
+            if (a < 0 && b > 0) return '2';
+            if (a < 0 && b < 0) return '3';
+            if (a > 0 && b < 0) return '4';
+            return 'บนแกน';
+        }
+
+        // QUIZ SYSTEM LOGIC
+        const quizAnswers = {
+            1: {
+                correct: 'B',
+                title: 'คำอธิบาย (ข้อ 1)',
+                text: 'กำหนด $z = a + bi$ โดย $a < 0$ และ $b > 0$ (Quadrant 2)<br>' +
+                      '1. <b>สังยุค $\\bar{z} = a - bi$:</b> ค่าจริง $a < 0$ และค่าจินตภาพ $-b < 0$ ดังนั้น $\\bar{z}$ จะตกอยู่ใน <b>Quadrant 3</b> (สะท้อนข้ามแกน Re)<br>' +
+                      '2. <b>อินเวิร์สการบวก $-z = -a - bi$:</b> ค่าจริง $-a > 0$ และค่าจินตภาพ $-b < 0$ ดังนั้น $-z$ จะตกอยู่ใน <b>Quadrant 4</b> (หมุนทวน/ตามเข็มไป 180°)<br>' +
+                      '<b>เฉลยที่ถูกต้อง:</b> ตอบ ข้อ ข'
+            },
+            2: {
+                correct: 'A',
+                title: 'คำอธิบาย (ข้อ 2)',
+                text: 'การคูณรูปขั้ว Polar Form: $z_1 \\cdot z_2 = (r_1 \\cdot r_2)[\\cos(\\theta_1 + \\theta_2) + i\\sin(\\theta_1 + \\theta_2)]$<br>' +
+                      '• $r_1 \\cdot r_2 = 2 \\times 3 = 6$<br>' +
+                      '• $\\theta_1 + \\theta_2 = 40^\\circ + 80^\\circ = 120^\\circ$<br>' +
+                      'แปลงเป็นรูปพีชคณิต $a + bi$:<br>' +
+                      '$\\cos 120^\\circ = -\\frac{1}{2}$ และ $\\sin 120^\\circ = \\frac{\\sqrt{3}}{2}$<br>' +
+                      '$\\implies 6\\left(-\\frac{1}{2} + i\\frac{\\sqrt{3}}{2}\\right) = -3 + 3\\sqrt{3}i$ (ตอบ ข้อ ก)'
+            },
+            3: {
+                correct: 'B',
+                title: 'คำอธิบาย (ข้อ 3)',
+                text: 'ในรูปขั้ว Polar $i = 1(\\cos 90^\\circ + i\\sin 90^\\circ)$<br>' +
+                      'เมื่อนำ $z = r(\\cos\\theta + i\\sin\\theta)$ มาคูณด้วย $i$:<br>' +
+                      '$z \\cdot i = (r \\cdot 1)[\\cos(\\theta + 90^\\circ) + i\\sin(\\theta + 90^\\circ)]$<br>' +
+                      '• ขนาดเวกเตอร์เท่าเดิมคือ $r$<br>' +
+                      '• มุมเปลี่ยนเป็น $\\theta + 90^\\circ$ ซึ่งคือ <b>การหมุนทวนเข็มนาฬิกาเป็นมุม 90°</b> รอบจุดกำเดิ (ตอบ ข้อ ข)'
+            }
+        };
+
+        function checkAnswer(qNum) {
+            const selected = document.querySelector(`input[name="q${qNum}"]:checked`);
+            const expDiv = document.getElementById(`q${qNum}Explanation`);
+            const qData = quizAnswers[qNum];
+
+            if (!selected) {
+                alert('กรุณาเลือกคำตอบที่ต้องการตรวจก่อนครับ');
+                return;
+            }
+
+            expDiv.classList.remove('hidden', 'bg-emerald-950/80', 'bg-rose-950/80', 'border-emerald-500/50', 'border-rose-500/50');
+
+            if (selected.value === qData.correct) {
+                expDiv.classList.add('bg-emerald-950/80', 'border', 'border-emerald-500/50', 'text-emerald-200');
+                expDiv.innerHTML = `
+                    <div class="flex items-center gap-2 text-emerald-400 font-bold text-sm mb-1">
+                        <i class="fa-solid fa-circle-check text-base"></i> ถูกต้องแม่นยำ! (${qData.title})
+                    </div>
+                    <div>${qData.text}</div>
+                `;
+            } else {
+                expDiv.classList.add('bg-rose-950/80', 'border', 'border-rose-500/50', 'text-rose-200');
+                expDiv.innerHTML = `
+                    <div class="flex items-center gap-2 text-rose-400 font-bold text-sm mb-1">
+                        <i class="fa-solid fa-circle-xmark text-base"></i> ยังไม่ถูกต้อง ลองพิจารณาแนวคิดนี้
+                    </div>
+                    <div>${qData.text}</div>
+                `;
+            }
+
+            renderKaTeX();
+        }
+    </script>
+</body>
+</html>
